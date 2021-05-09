@@ -13,7 +13,7 @@ Steps to run this project:
     CORS_ORIGIN=http://localhost:3000
     ```
 7. Run `npm start` command
-8. Run `npm run mockdata` command to populate mock data to database
+8. Run `npm run seed:run` command to populate mock data to database
 
 ## API
 
@@ -353,7 +353,7 @@ Steps to run this project:
 
   ```
 
-### Add Keybind to User Favorites
+### Add Keybinds to User Favorites
 ----
   Returns json data about a single user and its updated keybindings
 
@@ -375,10 +375,16 @@ Steps to run this project:
 
   ```
     {
-        "keybind": {
-            "id": "id"
-        }
+        "keybinds": "uuid-uuid-uuid-uuid"
     }
+  ```
+  or
+  ```
+  {
+    "keybinds":
+        ["uuid-uuid-uuid-uuid-uuid","uuid-uuid-uuid-uuid-uuid","uuid-uuid-uuid-uuid-uuid", ...]
+
+  }
   ```
 
 * **Success Response:**

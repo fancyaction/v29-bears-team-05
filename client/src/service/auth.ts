@@ -1,8 +1,6 @@
-import config from '../config';
-
 const Auth = {
   login(credentials) {
-    return fetch(`${config.API_ENDPOINT}/auth/login`, {
+    return fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/auth/login`, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
@@ -15,6 +13,14 @@ const Auth = {
         return res.json();
       }
     });
+  },
+  saveUsername(username) {
+    localStorage.setItem('username', username);
+  },
+  getUsername() {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('username');
+    }
   },
 };
 
