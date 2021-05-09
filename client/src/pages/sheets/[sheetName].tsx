@@ -1,14 +1,49 @@
 import { useRouter } from 'next/router';
 import { useQuery, UseQueryResult, useQueryClient } from 'react-query';
-import { getSheet } from '../../service/queryFns';
+import { addFavorites, getSheet } from '../../service/queryFns';
 import KeybindList from '../../components/KeybindList';
 import TextField from '../../components/Textfield';
+import { useState } from 'react';
+import { FavsProvider, useFavs } from '../../context/FavContext';
+import Link from 'next/link';
 
-const FavoriteButton = () => (
-  <td className="p-2 text-sm sm:text-base">
-    <button>🤍</button>
-  </td>
-);
+const FavoriteButton = ({ record }) => {
+  const context = useFavs();
+  const { favs, setFavs } = context;
+  const initialState = favs?.includes(record.id);
+  const [active, setActive] = useState(initialState);
+
+  const handleClick = (e) => {
+    if (!active) {
+      setFavs((prev) => [...prev, record.id]);
+    } else {
+      const arr = favs ? [...favs] : [];
+      arr.splice(
+        arr.findIndex((el) => el === record.id),
+        1
+      );
+      setFavs(arr);
+    }
+    setActive((prev) => !prev);
+  };
+
+  return (
+    <td className="p-2 text-sm sm:text-base">
+      <div>
+        <label className="cursor-pointer">
+          {active ? '❤️' : '🤍'}
+          <input
+            className="invisible"
+            type="checkbox"
+            checked={active}
+            name={record.id}
+            onChange={handleClick}
+          />
+        </label>
+      </div>
+    </td>
+  );
+};
 
 type Column = { header: string; component: React.ReactNode; colWidth: string };
 
@@ -29,8 +64,8 @@ const columns: Column[] = [
     colWidth: 'w-2',
   },
   {
-    header: '❤️',
-    component: <FavoriteButton />,
+    header: ' ',
+    component: <FavoriteButton record />,
     colWidth: 'w-3',
   },
 ];
@@ -50,9 +85,24 @@ const Sheet = () => {
     isLoading,
     data,
     error,
-  }: UseQueryResult<any[], { message: string }> = useQuery(['sheet', id], () =>
-    getSheet(id)
+  }: UseQueryResult<{ keybinds: any[] }, { message: string }> = useQuery(
+    ['sheet', id],
+    () => getSheet(id)
   );
+
+  const { favs } = useFavs();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!favs) return;
+
+    console.log('clicked submit');
+    console.log('favs', favs);
+    await addFavorites(favs);
+    // route to favs sheet ?
+    router.push(`/myfavorites/${sheetName}`);
+  };
 
   if (isLoading) return <div>Loading...</div>;
 
@@ -68,11 +118,26 @@ const Sheet = () => {
             {sheetName} keyboard shortcuts
           </h1>
         </div>
-        <KeybindList
-          sheetData={data}
-          columns={columns}
-          titleField="cheatsheetCategory"
-        />
+        <Link href={`/myfavorites/${sheetName}`}>favorites for this sheet</Link>
+        {/* <FavsProvider> */}
+        <form>
+          <KeybindList
+            sheetData={data.keybinds}
+            columns={columns}
+            titleField="cheatsheetCategory"
+          />
+          <div className="flex justify-center">
+            <button
+              type="submit"
+              onClick={handleSubmit}
+              disabled={!favs || !favs.length}
+              className="w-full max-w-md px-6 py-3 mb-1 mr-1 text-sm font-bold text-white uppercase transition-all duration-150 ease-linear bg-gray-700 rounded shadow outline-none mt-11 hover:shadow-lg focus:outline-none"
+            >
+              Save
+            </button>
+          </div>
+        </form>
+        {/* </FavsProvider> */}
       </div>
     );
   } else {
